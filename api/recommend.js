@@ -39,7 +39,7 @@ export default async function handler(req, res) {
   const prompt = `
 당신은 초등학교 수업을 지원하는 교육 전문가입니다.
 
-대상: ${grade}
+대상 학년: ${grade}
 수업 주제: ${topic}
 
 다음 조건에 맞춰 한국어로 학습활동 3가지를 추천하세요.
@@ -50,12 +50,33 @@ export default async function handler(req, res) {
 4. 각 활동의 방법과 교육적 효과를 설명할 것
 5. 학생에게 안전하고 실행하기 쉬울 것
 
-제목과 번호를 사용하여 읽기 쉽게 작성하세요.
+각 활동은 다음 형식으로 작성하세요.
+
+활동 1: 활동 제목
+- 활동 방법:
+- 구성주의 학습 요소:
+- 컴퓨팅 사고력 요소:
+- 기대되는 교육적 효과:
+
+활동 2: 활동 제목
+- 활동 방법:
+- 구성주의 학습 요소:
+- 컴퓨팅 사고력 요소:
+- 기대되는 교육적 효과:
+
+활동 3: 활동 제목
+- 활동 방법:
+- 구성주의 학습 요소:
+- 컴퓨팅 사고력 요소:
+- 기대되는 교육적 효과:
+
+교사가 바로 수업에 활용할 수 있도록
+구체적이고 이해하기 쉽게 작성하세요.
 `;
 
   try {
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
       {
         method: "POST",
         headers: {
@@ -65,11 +86,15 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           contents: [
             {
-              parts: [{ text: prompt }]
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
             }
           ],
           generationConfig: {
-            maxOutputTokens: 1000
+            maxOutputTokens: 2000
           }
         })
       }
@@ -80,7 +105,15 @@ export default async function handler(req, res) {
 
       if (response.status === 429) {
         return res.status(429).json({
-          error: "무료 사용 한도에 도달했습니다. 나중에 다시 시도해 주세요."
+          error:
+            "무료 사용 한도에 도달했습니다. 잠시 후 다시 시도해 주세요."
+        });
+      }
+
+      if (response.status === 404) {
+        return res.status(502).json({
+          error:
+            "AI 모델을 찾을 수 없습니다. 모델 설정을 확인해 주세요."
         });
       }
 
@@ -94,7 +127,7 @@ export default async function handler(req, res) {
     const recommendation = (
       data.candidates?.[0]?.content?.parts || []
     )
-      .map(part => part.text || "")
+      .map((part) => part.text || "")
       .join("\n")
       .trim();
 
@@ -105,7 +138,7 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json({
-      recommendation
+      recommendation: recommendation
     });
 
   } catch (error) {
@@ -116,3 +149,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
