@@ -5,48 +5,102 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AI 학습활동 추천 도우미</title>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
       background: #fff7ef;
-      padding: 30px;
-      text-align: center;
+      margin: 0;
+      padding: 30px 15px;
+      color: #333;
     }
+
     .container {
-      max-width: 500px;
+      max-width: 600px;
       margin: 40px auto;
       background: white;
       padding: 30px;
       border-radius: 20px;
       box-shadow: 0 4px 15px #ddd;
     }
-    h1 { color: #e87925; }
+
+    h1 {
+      color: #e87925;
+      text-align: center;
+    }
+
+    .description {
+      text-align: center;
+      color: #666;
+    }
+
+    label {
+      display: block;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
     select, input, button {
       width: 100%;
-      box-sizing: border-box;
       padding: 12px;
-      margin: 10px 0;
+      margin-top: 10px;
       border-radius: 8px;
       border: 1px solid #ddd;
       font-size: 16px;
     }
+
     button {
       background: #f28c38;
       color: white;
       border: none;
       cursor: pointer;
+      margin-top: 25px;
     }
+
+    button:hover {
+      background: #e87925;
+    }
+
+    button:disabled {
+      background: #bbb;
+      cursor: wait;
+    }
+
     #result {
-      margin-top: 20px;
-      text-align: left;
+      margin-top: 25px;
+      padding: 15px;
+      background: #fffaf5;
+      border-radius: 10px;
       line-height: 1.8;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      display: none;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+      margin-top: 25px;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
+
     <h1>🎓 AI 학습활동 추천 도우미</h1>
-    <p>학년과 수업 주제를 입력해 주세요.</p>
+
+    <p class="description">
+      학년과 수업 주제를 입력하면<br>
+      AI가 맞춤형 학습활동을 추천합니다.
+    </p>
+
+    <label for="grade">학년 선택</label>
 
     <select id="grade">
       <option>초등학교 1학년</option>
@@ -57,44 +111,80 @@
       <option>초등학교 6학년</option>
     </select>
 
-    <input id="topic" placeholder="수업 주제 (예: 환경 보호)">
+    <label for="topic">수업 주제</label>
 
-    <button onclick="recommend()">학습활동 추천받기</button>
+    <input
+      id="topic"
+      type="text"
+      maxlength="100"
+      placeholder="예: 환경 보호, 물의 순환, 분수"
+    >
 
-    <div id="result"></div>
+    <button id="recommendButton" onclick="recommend()">
+      ✨ AI 학습활동 추천받기
+    </button>
+
+    <div id="result" aria-live="polite"></div>
+
+    <p class="footer">
+      Google Gemini API 기반 AI 교육 웹앱
+    </p>
+
   </div>
 
   <script>
-    function recommend() {
+    async function recommend() {
       const grade = document.getElementById("grade").value;
       const topic = document.getElementById("topic").value.trim();
       const result = document.getElementById("result");
+      const button = document.getElementById("recommendButton");
+
+      result.style.display = "block";
 
       if (!topic) {
         result.textContent = "수업 주제를 입력해 주세요.";
         return;
       }
 
-      result.innerHTML = "";
+      button.disabled = true;
+      button.textContent = "⏳ AI가 학습활동을 생성하고 있어요...";
+      result.textContent = "잠시만 기다려 주세요.";
 
-      const heading = document.createElement("h3");
-      heading.textContent = "📚 추천 학습활동";
-      result.appendChild(heading);
+      try {
+        const response = await fetch("/api/recommend", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            grade: grade,
+            topic: topic
+          })
+        });
 
-      const activities = [
-        `${grade} 학생들이 '${topic}'에 대해 알고 있는 것을 이야기합니다.`,
-        `모둠별로 '${topic}'과 관련된 문제를 찾아봅니다.`,
-        `해결 아이디어를 만들고 친구들과 공유합니다.`
-      ];
+        const data = await response.json();
 
-      const list = document.createElement("ol");
-      activities.forEach(activity => {
-        const item = document.createElement("li");
-        item.textContent = activity;
-        list.appendChild(item);
-      });
-      result.appendChild(list);
+        if (!response.ok) {
+          throw new Error(
+            data.error || "추천을 가져오지 못했습니다."
+          );
+        }
+
+        result.textContent =
+          "📚 AI 추천 학습활동\n\n" +
+          data.recommendation;
+
+      } catch (error) {
+        result.textContent =
+          "⚠️ " + error.message +
+          "\n잠시 후 다시 시도해 주세요.";
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "✨ AI 학습활동 추천받기";
+      }
     }
   </script>
+
 </body>
 </html>
