@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 학습활동 추천 도우미</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff7ef;
+      padding: 30px;
+      text-align: center;
+    }
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px #ddd;
+    }
+    h1 { color: #e87925; }
+    select, input, button {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+    }
+    button {
+      background: #f28c38;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      text-align: left;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎓 AI 학습활동 추천 도우미</h1>
+    <p>학년과 수업 주제를 입력해 주세요.</p>
+
+    <select id="grade">
+      <option>초등학교 1학년</option>
+      <option>초등학교 2학년</option>
+      <option>초등학교 3학년</option>
+      <option>초등학교 4학년</option>
+      <option>초등학교 5학년</option>
+      <option>초등학교 6학년</option>
+    </select>
+
+    <input id="topic" placeholder="수업 주제 (예: 환경 보호)">
+
+    <button onclick="recommend()">학습활동 추천받기</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function recommend() {
+      const grade = document.getElementById("grade").value;
+      const topic = document.getElementById("topic").value.trim();
+      const result = document.getElementById("result");
+
+      if (!topic) {
+        result.textContent = "수업 주제를 입력해 주세요.";
+        return;
+      }
+
+      result.innerHTML = "";
+
+      const heading = document.createElement("h3");
+      heading.textContent = "📚 추천 학습활동";
+      result.appendChild(heading);
+
+      const activities = [
+        `${grade} 학생들이 '${topic}'에 대해 알고 있는 것을 이야기합니다.`,
+        `모둠별로 '${topic}'과 관련된 문제를 찾아봅니다.`,
+        `해결 아이디어를 만들고 친구들과 공유합니다.`
+      ];
+
+      const list = document.createElement("ol");
+      activities.forEach(activity => {
+        const item = document.createElement("li");
+        item.textContent = activity;
+        list.appendChild(item);
+      });
+      result.appendChild(list);
+    }
+  </script>
+</body>
+</html>
